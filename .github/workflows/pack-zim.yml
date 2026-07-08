@@ -1,0 +1,54 @@
+name: pack-zim
+# content/<slug>.html を検索付きZIMにパックし、GitHub Release として公開する。
+# hikigaeru(DeepSeek) が HTML を push → `gh workflow run pack-zim.yml -f slug=<slug>` で発火。
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: "content/<slug>.html の slug"
+        required: true
+      title:
+        description: "ZIMタイトル(省略時は<title>から)"
+        required: false
+        default: ""
+      lang:
+        description: "言語(ja/en)"
+        required: false
+        default: "ja"
+
+permissions:
+  contents: write
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: install libzim
+        run: pip install libzim
+      - name: pack ZIM
+        id: pack
+        run: |
+          set -e
+          IN="content/${{ github.event.inputs.slug }}.html"
+          OUT="${{ github.event.inputs.slug }}.zim"
+          test -f "$IN" || { echo "::error::$IN が無い"; exit 1; }
+          ARGS=(--lang "${{ github.event.inputs.lang }}")
+          if [ -n "${{ github.event.inputs.title }}" ]; then ARGS+=(--title "${{ github.event.inputs.title }}"); fi
+          python3 zim_pack.py "$IN" "$OUT" "${ARGS[@]}"
+          echo "out=$OUT" >> "$GITHUB_OUTPUT"
+      - name: publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SLUG="${{ github.event.inputs.slug }}"
+          TITLE="${{ github.event.inputs.title }}"
+          [ -z "$TITLE" ] && TITLE="$SLUG"
+          # 既存タグがあれば差し替え
+          gh release delete "$SLUG" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "$SLUG" "${{ steps.pack.outputs.out }}" \
+            --title "$TITLE" --notes "auto-packed by hikigaeru pack-zim CI"
+          echo "released: $(gh release view "$SLUG" --json url -q .url)"
