@@ -1,6 +1,6 @@
 name: pack-zim
-# content/<slug>.html を検索付きZIMにパックし、GitHub Release として公開する。
-# hikigaeru(DeepSeek) が HTML を push → `gh workflow run pack-zim.yml -f slug=<slug>` で発火。
+# content/*.html を検索付きZIMにパックし、GitHub Release として公開する。
+# 手動 dispatch に加え、content/*.html の push でも対象ファイルごとに自動発行する。
 on:
   workflow_dispatch:
     inputs:
@@ -15,12 +15,52 @@ on:
         description: "言語(ja/en)"
         required: false
         default: "ja"
+  push:
+    branches: [main]
+    paths:
+      - "content/*.html"
 
 permissions:
   contents: write
 
 jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      slugs: ${{ steps.slugs.outputs.slugs }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: slugs
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            printf 'slugs=["%s"]\n' "${{ github.event.inputs.slug }}" >> "$GITHUB_OUTPUT"
+          else
+            BEFORE="${{ github.event.before }}"
+            AFTER="${{ github.sha }}"
+            if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+              FILES=$(git ls-tree -r --name-only "$AFTER" -- 'content/*.html')
+            else
+              FILES=$(git diff --name-only --diff-filter=AM "$BEFORE" "$AFTER" -- 'content/*.html')
+            fi
+            python3 - "$FILES" >> "$GITHUB_OUTPUT" <<'PY'
+          import json, pathlib, sys
+          files=[x for x in sys.argv[1].splitlines() if x]
+          slugs=[pathlib.Path(x).stem for x in files]
+          print("slugs="+json.dumps(slugs, ensure_ascii=False))
+          PY
+          fi
+
   pack:
+    needs: detect
+    if: needs.detect.outputs.slugs != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        slug: ${{ fromJSON(needs.detect.outputs.slugs) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,24 +71,34 @@ jobs:
         run: pip install libzim
       - name: pack ZIM
         id: pack
+        shell: bash
         run: |
-          set -e
-          IN="content/${{ github.event.inputs.slug }}.html"
-          OUT="${{ github.event.inputs.slug }}.zim"
+          set -euo pipefail
+          SLUG="${{ matrix.slug }}"
+          IN="content/$SLUG.html"
+          OUT="$SLUG.zim"
           test -f "$IN" || { echo "::error::$IN が無い"; exit 1; }
-          ARGS=(--lang "${{ github.event.inputs.lang }}")
-          if [ -n "${{ github.event.inputs.title }}" ]; then ARGS+=(--title "${{ github.event.inputs.title }}"); fi
+          LANG="ja"
+          TITLE=""
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            LANG="${{ github.event.inputs.lang }}"
+            TITLE="${{ github.event.inputs.title }}"
+          fi
+          ARGS=(--lang "$LANG")
+          if [ -n "$TITLE" ]; then ARGS+=(--title "$TITLE"); fi
           python3 zim_pack.py "$IN" "$OUT" "${ARGS[@]}"
           echo "out=$OUT" >> "$GITHUB_OUTPUT"
+          echo "title=$TITLE" >> "$GITHUB_OUTPUT"
       - name: publish release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
         run: |
-          SLUG="${{ github.event.inputs.slug }}"
-          TITLE="${{ github.event.inputs.title }}"
+          set -euo pipefail
+          SLUG="${{ matrix.slug }}"
+          TITLE="${{ steps.pack.outputs.title }}"
           [ -z "$TITLE" ] && TITLE="$SLUG"
-          # 既存タグがあれば差し替え
           gh release delete "$SLUG" --yes --cleanup-tag 2>/dev/null || true
           gh release create "$SLUG" "${{ steps.pack.outputs.out }}" \
-            --title "$TITLE" --notes "auto-packed by hikigaeru pack-zim CI"
+            --title "$TITLE" --notes "auto-packed by pack-zim CI"
           echo "released: $(gh release view "$SLUG" --json url -q .url)"
