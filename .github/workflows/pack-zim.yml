@@ -47,6 +47,11 @@ jobs:
           if [ -n "$TITLE_INPUT" ]; then ARGS+=(--title "$TITLE_INPUT"); fi
           python3 zim_pack.py "$IN" "$OUT" "${ARGS[@]}"
           echo "out=$OUT" >> "$GITHUB_OUTPUT"
+      - name: upload test artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpt-ci-test-zim
+          path: ${{ steps.pack.outputs.out }}
       - name: publish release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
