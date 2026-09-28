@@ -2,9 +2,6 @@ name: pack-zim
 # content/<slug>.html を検索付きZIMにパックし、GitHub Release として公開する。
 # hikigaeru(DeepSeek) が HTML を push → `gh workflow run pack-zim.yml -f slug=<slug>` で発火。
 on:
-  push:
-    paths:
-      - "content/gpt-ci-test-20260928.html"
   workflow_dispatch:
     inputs:
       slug:
@@ -36,28 +33,19 @@ jobs:
         id: pack
         run: |
           set -e
-          SLUG="${{ github.event_name == 'push' && 'gpt-ci-test-20260928' || github.event.inputs.slug }}"
-          IN="content/${SLUG}.html"
-          OUT="${SLUG}.zim"
+          IN="content/${{ github.event.inputs.slug }}.html"
+          OUT="${{ github.event.inputs.slug }}.zim"
           test -f "$IN" || { echo "::error::$IN が無い"; exit 1; }
-          LANG_INPUT="${{ github.event.inputs.lang }}"
-          [ -z "$LANG_INPUT" ] && LANG_INPUT="ja"
-          ARGS=(--lang "$LANG_INPUT")
-          TITLE_INPUT="${{ github.event_name == 'push' && 'GPT CI ZIM test 2026-09-28' || github.event.inputs.title }}"
-          if [ -n "$TITLE_INPUT" ]; then ARGS+=(--title "$TITLE_INPUT"); fi
+          ARGS=(--lang "${{ github.event.inputs.lang }}")
+          if [ -n "${{ github.event.inputs.title }}" ]; then ARGS+=(--title "${{ github.event.inputs.title }}"); fi
           python3 zim_pack.py "$IN" "$OUT" "${ARGS[@]}"
           echo "out=$OUT" >> "$GITHUB_OUTPUT"
-      - name: upload test artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: gpt-ci-test-zim
-          path: ${{ steps.pack.outputs.out }}
       - name: publish release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          SLUG="${{ github.event_name == 'push' && 'gpt-ci-test-20260928' || github.event.inputs.slug }}"
-          TITLE="${{ github.event_name == 'push' && 'GPT CI ZIM test 2026-09-28' || github.event.inputs.title }}"
+          SLUG="${{ github.event.inputs.slug }}"
+          TITLE="${{ github.event.inputs.title }}"
           [ -z "$TITLE" ] && TITLE="$SLUG"
           # 既存タグがあれば差し替え
           gh release delete "$SLUG" --yes --cleanup-tag 2>/dev/null || true
