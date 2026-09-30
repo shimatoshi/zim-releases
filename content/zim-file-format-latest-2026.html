@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="template-version" content="1.0.0">
+<title>ZIMファイル形式の最新仕様と主要用途</title>
+<style>
+:root{--bg:#f4f5f3;--paper:#fff;--text:#20252a;--muted:#626b73;--line:#dfe3e1;--accent:#235b4e;--soft:#edf5f2;--warn:#fff6df;--page:1040px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans JP",sans-serif;line-height:1.72}
+a{color:#17483d;text-underline-offset:.16em}.page{width:min(calc(100% - 28px),var(--page));margin:18px auto 64px;background:var(--paper);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.hero,section,.toc{padding:clamp(20px,3vw,34px)}section,.toc{border-top:1px solid var(--line)}h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.3;margin:.15em 0}.subtitle,.meta,.muted{color:var(--muted)}.meta{display:flex;gap:.4rem 1rem;flex-wrap:wrap;font-size:.84rem}
+.quick{margin-top:1rem;padding:1rem;border-left:4px solid var(--accent);background:var(--soft);border-radius:8px}.quick-grid{margin-top:.7rem;border:1px solid var(--line);border-radius:10px;overflow:hidden}.quick-grid details{border-top:1px solid var(--line)}.quick-grid details:first-child{border-top:0}.quick-grid summary{padding:.7rem .85rem;cursor:pointer;font-weight:700}.quick-grid p{margin:.2rem .85rem .85rem}.section-head{display:flex;justify-content:space-between;gap:1rem;align-items:start}.section-head h2{margin-top:0}.back{font-size:.78rem;color:var(--muted);white-space:nowrap}.toc-grid,.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem 1rem}.toc a{text-decoration:none}.card{border:1px solid var(--line);border-radius:10px;padding:1rem}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{border:1px solid var(--line);padding:.65rem;vertical-align:top}th{background:#f2f4f3}.callout{padding:1rem;border-radius:9px;background:var(--warn)}.gallery-rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(180px,240px);gap:.6rem;overflow-x:auto}.gallery-thumb{border:1px solid var(--line);border-radius:10px;background:#fff;padding:0;overflow:hidden;cursor:zoom-in}.gallery-thumb img{width:100%;height:140px;object-fit:cover;display:block}.gallery-thumb span{display:block;padding:.5rem;font-weight:700;font-size:.82rem}.image-lightbox[hidden]{display:none}.image-lightbox{position:fixed;inset:0;z-index:9999;background:rgba(8,12,11,.95);color:#fff;display:grid;grid-template-rows:1fr auto}.lightbox-stage{display:grid;place-items:center;position:relative;padding:3rem 4rem 1rem;min-height:0}.lightbox-stage img{max-width:100%;max-height:calc(100dvh - 11rem);background:#fff}.lbbtn{position:absolute;border:0;background:rgba(255,255,255,.14);color:#fff;cursor:pointer}.close{top:.7rem;right:.8rem;border-radius:99px;width:2.4rem;height:2.4rem}.prev,.next{top:50%;width:2.8rem;height:3.8rem;font-size:1.7rem}.prev{left:.7rem}.next{right:.7rem}.caption{padding:1rem;border-top:1px solid rgba(255,255,255,.15);background:#0c100f}.caption-inner{max-width:52rem;margin:auto}.counter{float:right;color:#b8c0bd}.small{font-size:.86rem;color:var(--muted)}footer{text-align:center;padding:1rem;border-top:1px solid var(--line)}
+@media(max-width:700px){.page{width:100%;margin:0;border-radius:0}.hero,section,.toc{padding:17px 16px}.toc-grid,.grid{grid-template-columns:1fr}.lightbox-stage{padding:3rem .6rem 1rem}.prev,.next{top:auto;bottom:.7rem;border-radius:99px;height:2.8rem}}
+</style>
+</head>
+<body>
+<main class="page">
+<header class="hero" id="top">
+<div class="muted"><strong>TECHNICAL KNOWLEDGE NOTE</strong></div>
+<h1>ZIMファイル形式の最新仕様と主要用途</h1>
+<p class="subtitle">openZIM / Kiwix のオフライン知識アーカイブを、2026年9月時点の仕様・実装・用途から整理</p>
+<div class="meta"><span>カテゴリ：コンピューティング / オフラインWeb</span><span>更新：2026-09-30</span><span>対象：実用〜技術</span></div>
+<div class="quick" id="summary"><strong>30秒要約</strong><p><b>ZIMは「Webコンテンツを高圧縮・索引付きでオフライン配布するためのオープンなコンテナ形式」</b>です。2026年時点でもフォーマットのmajor versionは6系で、現行libzimは6.1系のminor revisionを生成します。libzim自体のソフトウェア版は9.x系まで進んでいるため、両者を混同しないことが重要です。主用途はWikipedia等の大規模知識ベース、教育・医療・旅行情報、Stack ExchangeやGutenberg、動画・Webサイトのオフライン配布です。</p></div>
+<div class="quick-grid">
+<details><summary>最新版は？ — ZIM形式はmajor 6、現行生成系は6.1系</summary><p>libzim 7.0.0以降はZIM minor 6.1を使い、libzim 9.1.0ではminor revisionが6.1.2へ更新されています。libzim 9.xという数字はライブラリの版です。<a href="#version">詳細へ →</a></p></details>
+<details><summary>何が強み？ — 圧縮・ランダムアクセス・検索を1ファイルにまとめる</summary><p>多数の記事や画像などをclusterへまとめて圧縮し、directory/indexから個別コンテンツへアクセスできます。全文検索用Xapian indexも格納できます。<a href="#structure">詳細へ →</a></p></details>
+<details><summary>主要用途は？ — Wikipediaだけではない</summary><p>Wikimedia、Project Gutenberg、Stack Exchange、TED、教育教材、医療情報、旅行ガイド、Webサイト保存、LAN内オフライン配信などに使われています。<a href="#uses">詳細へ →</a></p></details>
+<details><summary>現在の圧縮は？ — Zstandardが中心</summary><p>現行libzim writerの既定圧縮はZstdです。旧来のLZMA2を読める系統もありますが、writer側ではZstdが標準です。<a href="#compression">詳細へ →</a></p></details>
+<details><summary>注意 — 「更新可能なWebアーカイブ」ではない</summary><p>ZIMは基本的にスナップショット配布向けで、Kiwix公式FAQでもincremental updateは現時点で提供されていません。更新時は通常、新しいZIMを再生成します。<a href="#limits">詳細へ →</a></p></details>
+</div>
+
+<div class="reference-gallery" aria-label="参考図">
+<p><strong>参考図</strong> <span class="small">タップで拡大</span></p>
+<div class="gallery-rail">
+<button class="gallery-thumb" data-gallery-index="0" data-title="ZIM内部構造の概念図" data-caption="Headerと各種pointer tableがdirectory entryやclusterを結び、cluster内のblobへ到達する。" data-source="本記事作図（openZIM仕様を要約）">
+<img alt="ZIM内部構造の概念図" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAwIiBoZWlnaHQ9IjUwMCIgdmlld0JveD0iMCAwIDEwMDAgNTAwIj48cmVjdCB3aWR0aD0iMTAwMCIgaGVpZ2h0PSI1MDAiIGZpbGw9IiNmN2Y4ZjciLz48ZyBmb250LWZhbWlseT0ic3lzdGVtLXVpIiBmb250LXNpemU9IjI4IiBmaWxsPSIjMjAyNTJhIj48cmVjdCB4PSI0MCIgeT0iNjAiIHdpZHRoPSIxNjAiIGhlaWdodD0iMTAwIiByeD0iMTQiIGZpbGw9IiNlZGY1ZjIiIHN0cm9rZT0iIzIzNWI0ZSIvPjx0ZXh0IHg9IjEyMCIgeT0iMTE4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5IZWFkZXI8L3RleHQ+PHJlY3QgeD0iMjYwIiB5PSI2MCIgd2lkdGg9IjIwMCIgaGVpZ2h0PSIxMDAiIHJ4PSIxNCIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjYzljZmNjIi8+PHRleHQgeD0iMzYwIiB5PSIxMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlBvaW50ZXIgdGFibGVzPC90ZXh0PjxyZWN0IHg9IjUyMCIgeT0iNjAiIHdpZHRoPSIxODAiIGhlaWdodD0iMTAwIiByeD0iMTQiIGZpbGw9IiNmZmYiIHN0cm9rZT0iI2M5Y2ZjYyIvPjx0ZXh0IHg9IjYxMCIgeT0iMTE4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5EaXJlY3Rvcnk8L3RleHQ+PHJlY3QgeD0iNzYwIiB5PSI2MCIgd2lkdGg9IjIwMCIgaGVpZ2h0PSIxMDAiIHJ4PSIxNCIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjYzljZmNjIi8+PHRleHQgeD0iODYwIiB5PSIxMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkNsdXN0ZXJzPC90ZXh0PjxwYXRoIGQ9Ik0yMDAgMTEwaDYwTTQ2MCAxMTBoNjBNNzAwIDExMGg2MCIgc3Ryb2tlPSIjMjM1YjRlIiBzdHJva2Utd2lkdGg9IjQiLz48cmVjdCB4PSIxMTAiIHk9IjI4MCIgd2lkdGg9Ijc4MCIgaGVpZ2h0PSIxMTAiIHJ4PSIxNCIgZmlsbD0iI2VlZjRmYiIgc3Ryb2tlPSIjYzljZmNjIi8+PHRleHQgeD0iNTAwIiB5PSIzMjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkNsdXN0ZXIgbmFpOiBIVE1MIC8gaW1hZ2UgLyBDU1MgLyBpbmRleCBkYXRhPC90ZXh0Pjx0ZXh0IHg9IjUwMCIgeT0iMzY3IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNjI2YjczIj5tdWx0aXBsZSBibG9icyBhcmUgY29tcHJlc3NlZCB0b2dldGhlcjwvdGV4dD48L2c+PC9zdmc+">
+<span>ZIM内部構造</span></button>
+<button class="gallery-thumb" data-gallery-index="1" data-title="ZIMの代表的な利用フロー" data-caption="オンライン時にZIMを入手・生成し、端末・USB・LANサーバーへ配布、Kiwix等で完全オフライン閲覧する。" data-source="本記事作図（Kiwix公式利用モデルを要約）">
+<img alt="ZIMの代表的な利用フロー" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAwIiBoZWlnaHQ9IjUwMCIgdmlld0JveD0iMCAwIDEwMDAgNTAwIj48cmVjdCB3aWR0aD0iMTAwMCIgaGVpZ2h0PSI1MDAiIGZpbGw9IiNmN2Y4ZjciLz48ZyBmb250LWZhbWlseT0ic3lzdGVtLXVpIiBmb250LXNpemU9IjI2IiBmaWxsPSIjMjAyNTJhIj48cmVjdCB4PSI0MCIgeT0iMTYwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjEyMCIgcng9IjE0IiBmaWxsPSIjZWRmNWYyIiBzdHJva2U9IiMyMzViNGUiLz48dGV4dCB4PSIxMzAiIHk9IjIxNSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+V2ViIC8gV2lraTwvdGV4dD48dGV4dCB4PSIxMzAiIHk9IjI1NSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U291cmNlPC90ZXh0PjxyZWN0IHg9IjMxMCIgeT0iMTYwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjEyMCIgcng9IjE0IiBmaWxsPSIjZmZmIiBzdHJva2U9IiNjOWNmY2MiLz48dGV4dCB4PSI0MDAiIHk9IjIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+WklNIEFyY2hpdmU8L3RleHQ+PHJlY3QgeD0iNTgwIiB5PSIxNjAiIHdpZHRoPSIxODAiIGhlaWdodD0iMTIwIiByeD0iMTQiIGZpbGw9IiNmZmYiIHN0cm9rZT0iI2M5Y2ZjYyIvPjx0ZXh0IHg9IjY3MCIgeT0iMjA1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5VU0IgLyBTRENhcmQ8L3RleHQ+PHRleHQgeD0iNjcwIiB5PSIyNDUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkxBTiBTZXJ2ZXI8L3RleHQ+PHJlY3QgeD0iODMwIiB5PSIxNjAiIHdpZHRoPSIxMzAiIGhlaWdodD0iMTIwIiByeD0iMTQiIGZpbGw9IiNlZWY0ZmIiIHN0cm9rZT0iI2M5Y2ZjYyIvPjx0ZXh0IHg9Ijg5NSIgeT0iMjIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5LaXdpeDwvdGV4dD48cGF0aCBkPSJNMjIwIDIyMGg5ME00OTAgMjIwaDkwTTc2MCAyMjBoNzAiIHN0cm9rZT0iIzIzNWI0ZSIgc3Ryb2tlLXdpZHRoPSI0Ii8+PHRleHQgeD0iNTAwIiB5PSIzNjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM2MjZiNzMiPkRvd25sb2FkIG9uY2Ug4oaSIHJlYWQgbWFueSB0aW1lcyBvZmZsaW5lPC90ZXh0PjwvZz48L3N2Zz4=">
+<span>利用フロー</span></button>
+</div></div>
+</header>
+
+<nav class="toc"><strong>目次</strong><div class="toc-grid"><a href="#version">最新バージョン</a><a href="#structure">内部構造</a><a href="#compression">圧縮・検索</a><a href="#uses">主要用途</a><a href="#tools">作成・閲覧ツール</a><a href="#limits">制約</a><a href="#practical">実用上の選び方</a><a href="#references">出典</a></div></nav>
+
+<section id="version"><div class="section-head"><h2>最新バージョン：何を「バージョン」と呼ぶか</h2><a class="back" href="#summary">↑ 要約へ</a></div>
+<div class="grid"><div class="card"><h3>ZIMファイル形式</h3><p><b>major versionは6。</b> openZIMのreference implementationであるlibzimは、現在もmajor 6のZIMを生成します。libzim 7.0.0でminor 6.1へ移行し、libzim 9.1.0のChangeLogではminor revisionを<b>6.1.2</b>へ更新したと明記されています。</p></div>
+<div class="card"><h3>libzim</h3><p><b>ライブラリの版は9.x系。</b> これはC++実装のソフトウェアバージョンであり、ZIMファイル形式が「v9」になった意味ではありません。</p></div></div>
+<div class="callout"><strong>最も重要な区別</strong><p>「libzim 9.x」≠「ZIM format v9」。ZIMヘッダのmajor/minorと、libzimのrelease versionは別の番号体系です。</p></div>
+</section>
+
+<section id="structure"><div class="section-head"><h2>内部構造：なぜ巨大な知識ベースを1ファイルにできるのか</h2><a class="back" href="#summary">↑ 要約へ</a></div>
+<p>ZIMは単なるZIPのような「ファイル詰め合わせ」ではなく、<b>Header、MIME type list、URL/title pointer、directory entries、clusters、checksum、必要に応じた検索index</b>を組み合わせたランダムアクセス向けアーカイブです。</p>
+<div class="table-wrap"><table><thead><tr><th>要素</th><th>役割</th></tr></thead><tbody>
+<tr><td>Header</td><td>magic、major/minor version、UUID、entry数・cluster数、各tableのoffsetなどを保持。</td></tr>
+<tr><td>Directory entry</td><td>path/title、MIME type、redirectやcluster/blobへの参照など、個々の論理エントリを記録。</td></tr>
+<tr><td>Cluster</td><td>複数blobをまとめて格納・圧縮。HTMLや画像等を個別圧縮するより高い圧縮効率を狙える。</td></tr>
+<tr><td>Index</td><td>タイトル検索・全文検索のためのデータ。libzimはXapian連携を持つ。</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="compression"><div class="section-head"><h2>圧縮と検索</h2><a class="back" href="#summary">↑ 要約へ</a></div>
+<p>現行libzim writerの既定圧縮は<b>Zstandard（Zstd）</b>です。libzimのwriter APIでもdefault compressionがZstdとして定義されています。ZIMはcluster単位で圧縮するため、同種コンテンツをまとめることで圧縮効率とランダムアクセスのバランスを取っています。</p>
+<p>検索は単純なファイル名検索に限定されず、ZIM内部へ全文検索indexを持たせられます。KiwixではZIMをローカルに置いたままタイトル検索・全文検索が可能です。</p>
+</section>
+
+<section id="uses"><div class="section-head"><h2>主要な用途</h2><a class="back" href="#summary">↑ 要約へ</a></div>
+<div class="grid">
+<div class="card"><h3>1. 大規模百科事典・辞書</h3><p>Wikipedia、Wiktionary、WikivoyageなどのWikimediaコンテンツを、画像や検索index込みでオフライン配布する用途が代表的です。</p></div>
+<div class="card"><h3>2. 教育・公共知識</h3><p>回線が遅い・高価・不安定な学校や地域で、教材やリファレンスをUSB、SDカード、PCへ配布できます。</p></div>
+<div class="card"><h3>3. 専門資料</h3><p>医学系Wikipedia（WikiMed）、Project Gutenberg、Stack Exchange、TEDなどのテーマ別知識アーカイブにも使われます。</p></div>
+<div class="card"><h3>4. 旅行・災害・現場用</h3><p>ネット接続が期待できない移動中、遠隔地、災害時の予備情報源として有効です。</p></div>
+<div class="card"><h3>5. Webサイトのオフライン保存</h3><p>Zimitは一般Webサイトをcrawlし、ZIMへパッケージします。Zimit 2.0では旧来より互換性が改善され、静的Wiki以外のWeb保存にも用途が広がっています。</p></div>
+<div class="card"><h3>6. LAN内オフライン配信</h3><p><code>kiwix-serve</code>でZIMをHTTP配信すれば、1台の端末やRaspberry Pi等からローカルネットワーク内の複数端末へ提供できます。</p></div>
+</div>
+</section>
+
+<section id="tools"><div class="section-head"><h2>作成・閲覧ツール</h2><a class="back" href="#summary">↑ 要約へ</a></div>
+<div class="table-wrap"><table><thead><tr><th>用途</th><th>代表ツール</th><th>位置づけ</th></tr></thead><tbody>
+<tr><td>読む</td><td>Kiwix Desktop / Android / iOS / Kiwix JS</td><td>最も一般的なZIM reader群。</td></tr>
+<tr><td>LAN配信</td><td>kiwix-serve</td><td>ZIMを普通のWebサイトとしてHTTP提供。</td></tr>
+<tr><td>低水準read/write</td><td>libzim / python-libzim</td><td>ZIM仕様のreference implementationとbinding。</td></tr>
+<tr><td>ローカルファイル→ZIM</td><td>zimwriterfs / Nautilus</td><td>既存HTML・ファイル群をZIM化。</td></tr>
+<tr><td>MediaWiki→ZIM</td><td>mwoffliner</td><td>Wikipedia系コンテンツの生成。</td></tr>
+<tr><td>一般Web→ZIM</td><td>Zimit / warc2zim</td><td>Web crawl・WARC系からZIMを生成。</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="limits"><div class="section-head"><h2>制約と現在の論点</h2><a class="back" href="#summary">↑ 要約へ</a></div>
+<ul><li><b>基本はスナップショット。</b> Kiwix公式FAQではincremental updateは現在未提供です。</li><li><b>Webアプリ互換性はreader依存。</b> 動的サイトや高度なJavaScriptは、生成方法とreader実装によって再現度が変わります。</li><li><b>巨大ZIMは配布サイズが大きい。</b> その代わり、1回配布すれば通信なしで繰り返し利用できます。</li><li><b>編集フォーマットではない。</b> ZIM内をその場で編集するより、原典・HTML・WARC等から再生成する運用が一般的です。</li></ul>
+</section>
+
+<section id="practical"><div class="section-head"><h2>実用上の選び方</h2><a class="back" href="#summary">↑ 要約へ</a></div>
+<p><b>「大量のWeb知識をオフラインで配る」ならZIMはかなり適しています。</b> とくに、HTML・画像・検索を1つの配布物にまとめたい場合に強みがあります。逆に、頻繁に差分更新するデータベース、共同編集、原データ解析が中心ならSQLite、Parquet、Git、WARC等のほうが扱いやすい場合があります。</p>
+<p>今回のような研究記事・知識ノートをKiwixで読む用途では、<b>自己完結HTML → ZIM</b>は自然な構成です。画像やCSSを埋め込み、外部依存をなくしてからZIM化すれば、端末単体で安定して閲覧できます。</p>
+</section>
+
+<section id="references"><div class="section-head"><h2>主要出典</h2><a class="back" href="#summary">↑ 要約へ</a></div>
+<ol>
+<li>openZIM, <a href="https://wiki.openzim.org/wiki/ZIM_file_format">ZIM file format specification</a>.</li>
+<li>openZIM/libzim, <a href="https://github.com/openzim/libzim/blob/main/ChangeLog">ChangeLog</a> — libzim 7.0.0でZIM minor 6.1、9.1.0で6.1.2への更新。</li>
+<li>openZIM/libzim, <a href="https://github.com/openzim/libzim">README / reference implementation</a>.</li>
+<li>Kiwix, <a href="https://get.kiwix.org/en/faq-items/how-does-kiwix-work/">How does Kiwix work?</a>.</li>
+<li>Kiwix, <a href="https://get.kiwix.org/en/faq/">FAQ</a> — incremental updateの現状。</li>
+<li>Kiwix Hub, <a href="https://hub.kiwix.org/">openZIM/Kiwix tools overview</a>.</li>
+<li>Kiwix Hub, <a href="https://hub.kiwix.org/weblog/2024/7/zimit-2-0-is-out/">Zimit 2.0 release note</a>.</li>
+<li>Wikimedia Foundation, <a href="https://wikimediafoundation.org/news/2017/10/02/offline-access-wikipedia-kiwix/">The future of offline access to Wikipedia: The Kiwix example</a>.</li>
+</ol>
+<p class="small">仕様の版番号は「ZIM headerのmajor/minor」と「libzimのsoftware release」を分けて記述しています。</p>
+</section>
+<footer><a href="#top">↑ ページ上部へ</a></footer>
+</main>
+
+<div class="image-lightbox" id="imageLightbox" hidden role="dialog" aria-modal="true">
+<div class="lightbox-stage" id="lightboxStage"><button class="lbbtn close" aria-label="閉じる">×</button><button class="lbbtn prev" aria-label="前">‹</button><img id="lightboxImage" alt=""><button class="lbbtn next" aria-label="次">›</button></div>
+<div class="caption"><div class="caption-inner"><b id="lightboxTitle"></b><span class="counter" id="lightboxCounter"></span><p id="lightboxDescription"></p><p class="small" id="lightboxSource"></p></div></div>
+</div>
+<script>
+(()=>{const t=[...document.querySelectorAll('.gallery-thumb')];if(!t.length)return;const b=document.getElementById('imageLightbox'),im=document.getElementById('lightboxImage'),ti=document.getElementById('lightboxTitle'),d=document.getElementById('lightboxDescription'),s=document.getElementById('lightboxSource'),c=document.getElementById('lightboxCounter');let i=0,x=null;const r=()=>{const q=t[i],m=q.querySelector('img');im.src=m.src;im.alt=m.alt;ti.textContent=q.dataset.title||m.alt;d.textContent=q.dataset.caption||'';s.textContent=q.dataset.source?'出典：'+q.dataset.source:'';c.textContent=(i+1)+' / '+t.length};const o=n=>{i=(n+t.length)%t.length;r();b.hidden=false};const mv=n=>{i=(i+n+t.length)%t.length;r()};t.forEach((q,n)=>q.onclick=()=>o(n));b.querySelector('.close').onclick=()=>b.hidden=true;b.querySelector('.prev').onclick=()=>mv(-1);b.querySelector('.next').onclick=()=>mv(1);document.onkeydown=e=>{if(b.hidden)return;if(e.key==='Escape')b.hidden=true;if(e.key==='ArrowLeft')mv(-1);if(e.key==='ArrowRight')mv(1)};document.getElementById('lightboxStage').ontouchstart=e=>x=e.changedTouches[0].clientX;document.getElementById('lightboxStage').ontouchend=e=>{const dx=e.changedTouches[0].clientX-x;if(Math.abs(dx)>45)mv(dx>0?-1:1)}})();
+</script>
+</body></html>
