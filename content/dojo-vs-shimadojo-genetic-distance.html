@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="template-version" content="1.0.0">
+<title>ドジョウとシマドジョウの遺伝的距離 — Misgurnus と Cobitis はどこまで離れているか</title>
+<style>
+:root{--bg:#f4f5f3;--paper:#fff;--text:#20252a;--muted:#626b73;--line:#dfe3e1;--accent:#235b4e;--soft:#edf5f2;--warn:#fff6df;--info:#eef4fb;--page:1040px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans JP",sans-serif;line-height:1.72}.page{width:min(calc(100% - 28px),var(--page));margin:18px auto 64px;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}a{color:#17483d;text-underline-offset:.16em}.hero,section,.toc{padding:clamp(20px,3vw,34px)}section,.toc{border-top:1px solid var(--line)}h1{font-size:clamp(1.8rem,5vw,2.75rem);line-height:1.3;margin:.15em 0}.subtitle,.meta,.muted,.small{color:var(--muted)}.meta{display:flex;flex-wrap:wrap;gap:.2rem 1rem;font-size:.84rem}.quick{margin-top:1rem;padding:1rem;border-left:4px solid var(--accent);background:var(--soft);border-radius:8px}.quick-grid{margin-top:.7rem;border:1px solid var(--line);border-radius:10px;overflow:hidden}.quick-grid details{border-top:1px solid var(--line)}.quick-grid details:first-child{border-top:0}.quick-grid summary{padding:.68rem .82rem;cursor:pointer;font-weight:700}.quick-grid p{margin:.15rem .85rem .85rem}.section-head{display:flex;justify-content:space-between;gap:1rem}.section-head h2{margin-top:0}.back{font-size:.78rem;color:var(--muted);white-space:nowrap}.toc-grid,.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem 1rem}.toc a{text-decoration:none}.card{border:1px solid var(--line);border-radius:10px;padding:1rem}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:.93rem}th,td{border:1px solid var(--line);padding:.62rem;vertical-align:top}th{background:#f2f4f3}.callout{padding:.9rem 1rem;border-radius:9px;background:var(--info);margin:.9rem 0}.warn{background:var(--warn)}.figure{border:1px solid var(--line);border-radius:12px;background:#f7f8f7;padding:.7rem;margin:1rem 0;overflow-x:auto}.figure svg{width:100%;height:auto;min-width:650px}.status-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}.status{padding:.9rem;border-radius:9px;border:1px solid var(--line)}footer{text-align:center;padding:1rem;border-top:1px solid var(--line)}
+@media(max-width:700px){.page{width:100%;margin:0;border-radius:0}.hero,section,.toc{padding:17px 16px}.toc-grid,.grid,.status-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main class="page">
+<header class="hero" id="top">
+<div class="muted"><strong>GENETICS / FRESHWATER FISH</strong></div>
+<h1>ドジョウとシマドジョウは、遺伝的にどれほど離れているのか</h1>
+<p class="subtitle"><i>Misgurnus anguillicaudatus</i> species complex と <i>Cobitis biwae</i> species complex を、核DNA・mtDNA・古い交雑史から読む</p>
+<div class="meta"><span>更新：2026-09-30</span><span>地域：日本を中心に東アジア</span><span>レベル：専門寄り</span></div>
+<div class="quick" id="summary"><strong>30秒要約</strong><p>核DNAを見る限り、ドジョウ属 <i>Misgurnus</i> とシマドジョウ属 <i>Cobitis</i> は明確に別系統で、属間の平均未補正 p-distance は <b>RAG1で4.3±0.8%、IRBP2で5.3±0.7%</b> と報告されています。ただしミトコンドリアDNAは話が全く別で、日本産ドジョウの一部は過去に <i>Cobitis</i> 系統からmtDNAを取り込んだと考えられており、mtDNA系統樹ではドジョウがシマドジョウ類の中へ入って見えることさえあります。したがって「遺伝的距離」を1つの数値で表すのは危険です。両群の分離は古く、少なくとも中期中新世より前に別系統として存在していたとみられますが、約14.4 Maには祖先的な両系統間でmtDNA浸透が起きたという推定があります。</p></div>
+<div class="quick-grid">
+<details><summary>核DNA — 4〜5%級の属間距離</summary><p>2015年の日本産ドジョウ研究では、Cobitis–Misgurnus間の平均 p-distance がRAG1で4.3±0.8%、IRBP2で5.3±0.7%。同じ解析でドジョウ属内の分化より大きい値です。<a href="#nuclear">詳細へ →</a></p></details>
+<details><summary>mtDNA — 「距離」が交雑史で壊れている</summary><p>日本産ドジョウの主要mtDNA系統の一つはCobitis由来の古い浸透とされ、cyt b系統樹だけでは属の距離を正しく表せません。<a href="#mito">詳細へ →</a></p></details>
+<details><summary>時間軸 — 14.4 Maは「分岐」ではなく浸透の推定時期</summary><p>2021年の全ミトゲノム解析はCobitis祖先系統→Misgurnus祖先系統のmtDNA浸透を14.40 Ma（95% HPD 12.30–16.54 Ma）と推定しました。両系統の分岐そのものはそれより古い必要があります。<a href="#time">詳細へ →</a></p></details>
+<details><summary>シマドジョウ側も複雑 — 旧C. biwaeは複数系統</summary><p>旧来「シマドジョウ」と一括されたC. biwae complexはA〜Dなど複数系統を含み、2003年にはWestern群とEastern/Kochi群でcyt b平均15.2%という大きな差も報告されています。<a href="#cobitis">詳細へ →</a></p></details>
+<details><summary>未解決 — 厳密な「ドジョウ vs ヒガシシマドジョウ」全ゲノム距離はまだ薄い</summary><p>属間平均や特定遺伝子の研究は豊富ですが、日本の各系統を網羅した高密度核ゲノム比較はまだ不足しています。<a href="#unknown">詳細へ →</a></p></details>
+</div>
+
+<div class="figure" aria-label="核DNAとmtDNAの系統関係模式図">
+<svg viewBox="0 0 1000 460" role="img"><rect width="1000" height="460" fill="#f7f8f7"/>
+<text x="40" y="45" font-family="system-ui" font-size="27" font-weight="700" fill="#20252a">核DNAとmtDNAで見える「関係」が違う</text>
+<text x="40" y="90" font-family="system-ui" font-size="21" fill="#235b4e">核DNA（RAG1 / IRBP2）</text>
+<line x1="110" y1="150" x2="300" y2="150" stroke="#555" stroke-width="4"/><line x1="300" y1="150" x2="440" y2="115" stroke="#555" stroke-width="4"/><line x1="300" y1="150" x2="440" y2="190" stroke="#555" stroke-width="4"/>
+<text x="460" y="122" font-family="system-ui" font-size="22">Cobitis sensu lato</text><text x="460" y="197" font-family="system-ui" font-size="22">Misgurnus sensu lato</text><text x="670" y="158" font-family="system-ui" font-size="18" fill="#626b73">別のクレードとして回収</text>
+<text x="40" y="270" font-family="system-ui" font-size="21" fill="#235b4e">mtDNA（cyt b / mitogenome）</text>
+<line x1="110" y1="330" x2="300" y2="330" stroke="#555" stroke-width="4"/><line x1="300" y1="330" x2="440" y2="295" stroke="#555" stroke-width="4"/><line x1="300" y1="330" x2="440" y2="370" stroke="#555" stroke-width="4"/>
+<text x="460" y="302" font-family="system-ui" font-size="22">Cobitis + 一部Misgurnus</text><text x="460" y="377" font-family="system-ui" font-size="22">他のMisgurnus系統</text>
+<path d="M710 365 C760 350 760 315 710 300" fill="none" stroke="#b06a00" stroke-width="5" stroke-dasharray="10 8"/><text x="735" y="340" font-family="system-ui" font-size="18" fill="#74500a">古いmtDNA浸透</text></svg>
+<p class="small">模式図。核DNAではCobitis sensu latoとMisgurnus sensu latoが別群として支持される一方、mtDNAでは古いintrogressionにより一部MisgurnusがCobitis側へ入る。</p>
+</div>
+</header>
+
+<nav class="toc"><strong>目次</strong><div class="toc-grid">
+<a href="#taxonomy">まず分類名を整理</a><a href="#nuclear">核DNAの距離</a><a href="#mito">mtDNAの罠</a><a href="#time">いつ分かれたのか</a><a href="#cobitis">シマドジョウ群内部</a><a href="#range">判明している範囲</a><a href="#unknown">未解決</a><a href="#references">主要文献</a>
+</div></nav>
+
+<section id="taxonomy"><div class="section-head"><h2>まず「シマドジョウ」が何を指すか</h2><a class="back" href="#summary">↑ 要約へ</a></div>
+<p>昔の文献では標準和名シマドジョウを広く <i>Cobitis biwae</i> として扱いますが、現在はこの群が複数の系統・倍数性を含むことが分かっています。少なくとも <b>type A（オオシマドジョウ）、type B（ニシシマドジョウ）、type C（ヒガシシマドジョウ）、type D（旧トサシマドジョウ系統）</b>が区別されてきました。2026年には南四国のtype D相当が新種 <i>Cobitis tosaensis</i> として記載され、分類整理は現在も進行中です。</p>
+<p>したがって以下の「Cobitis–Misgurnus間距離」は、特定の1個体どうしではなく、主に<b>属・主要系統レベル</b>の推定として読む必要があります。</p>
+</section>
+
+<section id="nuclear"><div class="section-head"><h2>核DNAではどれくらい離れているか</h2><a class="back" href="#summary">↑ 要約へ</a></div>
+<div class="table-wrap"><table><thead><tr><th>マーカー</th><th>Cobitis–Misgurnus</th><th>比較</th><th>解釈</th></tr></thead><tbody>
+<tr><td>RAG1</td><td><b>4.3 ± 0.8%</b>（mean uncorrected p-distance）</td><td>M. anguillicaudatus–M. mizolepis 3.1 ± 0.6%</td><td>属間距離は、同研究のMisgurnus種間より明瞭に大きい。</td></tr>
+<tr><td>IRBP2</td><td><b>5.3 ± 0.7%</b></td><td>同研究でMisgurnus内部にも複数核系統</td><td>別遺伝子でも同じ方向の深い分化を支持。</td></tr>
+</tbody></table></div>
+<p>これは「DNA全体が4〜5%違う」という意味ではありません。特定の核遺伝子領域での塩基置換率です。ただし、mtDNAのような母系一本の履歴ではなく、核ゲノム側でCobitis系統とMisgurnus系統が区別されるため、<b>現在の種系統関係を考えるならこちらの方が重要</b>です。</p>
+<div class="callout"><strong>感覚的には</strong><p>「ごく近い別属」ではなく、十分に古く分かれた近縁属。ただし同じドジョウ科の北方系統群の中にあり、科レベルで遠いわけでもない、という位置です。</p></div>
+</section>
+
+<section id="mito"><div class="section-head"><h2>mtDNAだけで距離を測ると何が起きるか</h2><a class="back" href="#summary">↑ 要約へ</a></div>
+<p>2008年以降のCobitidae系統解析では、核RAG1ではMisgurnusがまとまる一方、mtDNA cyt bでは一部の <i>M. anguillicaudatus</i> がCobitis群の内部に位置します。2011年の日本集団解析は、日本産ドジョウの2大mtDNAクレードのうち一方を<b>Cobitis属からの過去のmtDNA introgression</b>で説明しました。</p>
+<p>このため「ドジョウとシマドジョウのcyt b距離」を1つだけ出すと、採ったドジョウ個体がintrogressed mtDNAを持つかどうかで値も系統位置も大きく変わります。mtDNAでは属の境界が見かけ上崩れているのです。</p>
+</section>
+
+<section id="time"><div class="section-head"><h2>いつ頃から別系統なのか</h2><a class="back" href="#summary">↑ 要約へ</a></div>
+<p>2021年の58個体・41種超のCobitinaeミトゲノム比較では、Cobitinae北方系統の主要分化は古く、Cobitis–Misgurnus祖先間の<b>mtDNA浸透イベントを14.40 Ma（95% HPD 12.30–16.54 Ma）</b>と推定しました。</p>
+<div class="warn callout"><strong>14.4 Ma = 分岐年代ではありません</strong><p>これは両系統が一度分かれた後に起きた遺伝子浸透の推定時期です。交雑が起こるにはすでにCobitis系統とMisgurnus系統が存在していた必要があるため、両者の分岐はこれより古いと考えるのが自然です。ただし、mtDNA浸透があるため分岐年代をミトゲノムだけから厳密に決めるのは難しいです。</p></div>
+</section>
+
+<section id="cobitis"><div class="section-head"><h2>シマドジョウ類の内部差も大きい</h2><a class="back" href="#summary">↑ 要約へ</a></div>
+<p>2003年の旧 <i>C. biwae</i> 複合群研究では82集団を調べ、Eastern、Western、Kochiの3主要mtDNA群を認識しました。cyt b 748 bpでは<b>Western群と他群の平均差が15.2%</b>に達しました。この値は通常の「同種内変異」としては非常に大きく、後の細分化研究につながった重要な結果です。</p>
+<p>ただしWestern群では <i>C. takatsuensis</i> からのmtDNA浸透が疑われており、ここでも「mtDNAの大差＝そのまま種分岐」と単純化できません。</p>
+</section>
+
+<section id="range"><div class="section-head"><h2>どこまで判明しているのか</h2><a class="back" href="#summary">↑ 要約へ</a></div>
+<div class="status-grid">
+<div class="status"><strong>かなり確立</strong><p>核DNAではCobitis sensu latoとMisgurnus sensu latoは別クレード。日本産ドジョウには複数の深い核系統がある。</p></div>
+<div class="status"><strong>かなり確立</strong><p>日本産ドジョウの一部mtDNAはCobitis由来の古いintrogressionで説明される。</p></div>
+<div class="status"><strong>確立しつつある</strong><p>旧C. biwaeは単純な1種ではなく、複数の地理系統・倍数性・分類群を含むspecies complex。</p></div>
+<div class="status"><strong>進行中</strong><p>2026年にもtype D相当がC. tosaensisとして新種記載されるなど、分類体系はまだ更新中。</p></div>
+</div>
+</section>
+
+<section id="unknown"><div class="section-head"><h2>まだ分からないこと</h2><a class="back" href="#summary">↑ 要約へ</a></div>
+<ul>
+<li><b>日本の全Cobitis系統 × 全Misgurnus系統を同じ全ゲノムデータで比較した標準的距離表</b>はまだありません。</li>
+<li>古いmtDNA introgressionが、どのCobitis祖先集団から、どのMisgurnus祖先集団へ、何回起きたかは完全には解けていません。</li>
+<li>日本産「ドジョウ」自体も単一の遺伝集団ではなく、在来・移入・クローン・倍数体を含む複雑なspecies complexです。</li>
+<li>旧シマドジョウ群も命名・種境界の整理が続いており、特定地域の個体を比較する場合は「標準和名」よりtype/系統と採集地を指定した方が正確です。</li>
+</ul>
+<p><b>次に決定打になり得るのは、SNP/全ゲノムでの系統樹・D-statistics・ancestry解析</b>です。これなら古いintrogressionと真の種分岐を、mtDNA一遺伝子よりはるかに明瞭に分離できます。</p>
+</section>
+
+<section id="references"><div class="section-head"><h2>主要文献</h2><a class="back" href="#summary">↑ 要約へ</a></div>
+<ol>
+<li>Šlechtová V, Bohlen J, Perdices A. 2008. <a href="https://pubmed.ncbi.nlm.nih.gov/18255319/">Molecular phylogeny of the freshwater fish family Cobitidae...</a> Molecular Phylogenetics and Evolution 47:812–831. DOI 10.1016/j.ympev.2007.12.018.</li>
+<li>Kitagawa T, Fujii Y, Koizumi N. 2011. <a href="https://consensus.app/papers/origin-of-the-two-major-distinct-mtdna-clades-of-the-kitagawa-fujii/ec241dee5cbb59f180d5691e4a37155c/">Origin of the two major distinct mtDNA clades...</a> Folia Zoologica 60:343–349.</li>
+<li>Yamada A et al. 2015. <a href="https://eprints.lib.hokudai.ac.jp/dspace/bitstream/2115/63067/1/20150701arai.pdf">Hybrid origin of gynogenetic clones...</a> Journal of Experimental Zoology Part A 323:593–606. — RAG1 4.3±0.8%、IRBP2 5.3±0.7%のCobitis–Misgurnus距離を報告。</li>
+<li>Kitagawa T et al. 2003. <a href="https://consensus.app/papers/phylogeography-and-the-maternal-origin-of-the-tetraploid-kitagawa-watanabe/fa483c776e105bf58f4aee00ac62ba0a/">Phylogeography and the maternal origin of the tetraploid form of the Japanese spined loach, Cobitis biwae...</a> Ichthyological Research 50:318–325.</li>
+<li>Yu P et al. 2021. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7809818/">Comparative mitogenome analyses uncover mitogenome features and phylogenetic implications of the subfamily Cobitinae</a>. BMC Genomics 22:50.</li>
+<li>Perdices A et al. 2016. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4699775/">Molecular Evidence for Multiple Origins of the European Spined Loaches</a>. PLOS ONE 11.</li>
+<li>Kano Y et al. 2018. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6048182/">Photo images, 3D models and CT scanned data of loaches of Japan</a>. Biodiversity Data Journal.</li>
+<li>Takahashi H. 2026. <a href="https://mapress.com/zt/article/view/57003">A new species of spined loach from the southern Shikoku Island, Japan</a>. Zootaxa 5768:381–391. DOI 10.11646/zootaxa.5768.3.4.</li>
+</ol>
+<p class="small">数値はマーカー、補正法、比較対象に依存します。本記事ではp-distanceを「全ゲノム差」と同一視しません。</p>
+</section>
+<footer><a href="#top">↑ ページ上部へ</a></footer>
+</main></body></html>
